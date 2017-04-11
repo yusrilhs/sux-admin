@@ -1,5 +1,5 @@
 # Sux Admin
-Free and easy to use admin theme.
+Free and easy to use bootstrap admin theme.
 
 ## Components
 * jQuery
