@@ -8,7 +8,7 @@ Free and easy to use admin theme.
 * metisMenu
 * Font-Awesome
 
-[Demo](https://rawgit.com/fesuydev/sux-admin/master/index.html)
+[Demo](https://rawgit.com/yusrilhs/sux-admin/master/index.html)
 
 ### Starter Template
 ``` html
@@ -198,4 +198,4 @@ Free and easy to use admin theme.
 </html>
 ```
 
-Author Fesuy <fesuydev@gmail.com>
+Author Yusril Herliansyah <yusrilhsyah@gmail.com>
