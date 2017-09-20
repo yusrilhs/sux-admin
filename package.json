@@ -1,0 +1,45 @@
+{
+  "name": "sux-admin",
+  "version": "2.0.0",
+  "description": "Bootstrap Admin Theme",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yusrilhs/sux-admin.git"
+  },
+  "keywords": [
+    "bootstrap",
+    "admin",
+    "theme"
+  ],
+  "author": "Yusril Herlian Syah <yusrilhsyah@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/yusrilhs/sux-admin/issues"
+  },
+  "homepage": "https://github.com/yusrilhs/sux-admin#readme",
+  "devDependencies": {
+    "gulp": "^3.9.1",
+    "gulp-header": "^1.8.9",
+    "gulp-include": "^2.3.1",
+    "gulp-jsbeautifier": "^2.1.1",
+    "gulp-jshint": "^2.0.4",
+    "gulp-rename": "^1.2.2",
+    "gulp-sass": "^3.1.0",
+    "gulp-sourcemaps": "^2.6.1",
+    "gulp-uglify": "^3.0.0",
+    "gulp-util": "^3.0.8",
+    "jshint": "^2.9.5"
+  },
+  "dependencies": {
+    "animate.css": "^3.5.2",
+    "bootstrap": "^3.3.7",
+    "font-awesome": "^4.7.0",
+    "headroom.js": "^0.9.4",
+    "jquery": "^2.2.4",
+    "jquery.scrollbar": "^0.2.11"
+  }
+}
