@@ -8,7 +8,8 @@ var gulp = require('gulp'),
     rename = require('gulp-rename'),
     sourcemaps = require('gulp-sourcemaps'),
     gutil = require('gulp-util')
-    concat = require('gulp-concat');
+    concat = require('gulp-concat'),
+    autoprefixer = require('gulp-autoprefixer');
 
 // Path Configuration
 var paths = {
@@ -88,6 +89,12 @@ var paths = {
 var config = {
     prettify: {
         indent_size: 4
+    },
+    autoprefixer: {
+        browsers: [
+            'ie >= 10',
+            'last 2 versions'
+        ]
     }
 };
 
@@ -106,6 +113,7 @@ gulp.task('sass:expanded', function() {
     gulp.src(paths.sass.source)
         .pipe(header(banner, {pkg:pkg}))
         .pipe(sass({outputStyle: 'expanded'}).on('error', sass.logError))
+        .pipe(autoprefixer(config.autoprefixer))
         .pipe(gulp.dest(paths.sass.dest));
 });
 
@@ -115,6 +123,7 @@ gulp.task('sass:compressed', function() {
         .pipe(header(banner, {pkg:pkg}))
         .pipe(sass({outputStyle: 'expanded'}).on('error', sass.logError))
         .pipe(rename({extname: '.min.css'}))
+        .pipe(autoprefixer(config.autoprefixer))
         .pipe(sourcemaps.write('.'))
         .pipe(gulp.dest(paths.sass.dest));
 });
@@ -167,6 +176,7 @@ gulp.task('plugins:sass:expanded', function() {
     gulp.src(paths.plugins.sass.source)
         .pipe(header(banner, {pkg:pkg}))
         .pipe(sass({outputStyle: 'expanded'}).on('error', sass.logError))
+        .pipe(autoprefixer(config.autoprefixer))
         .pipe(gulp.dest(paths.plugins.sass.dest));
 });
 
@@ -176,6 +186,7 @@ gulp.task('plugins:sass:compressed', function() {
         .pipe(header(banner, {pkg:pkg}))
         .pipe(sass({outputStyle: 'compressed'}).on('error', sass.logError))
         .pipe(rename({extname: '.min.css'}))
+        .pipe(autoprefixer(config.autoprefixer))
         .pipe(sourcemaps.write('.'))
         .pipe(gulp.dest(paths.plugins.sass.dest));
 });
