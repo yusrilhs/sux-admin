@@ -23,6 +23,8 @@
   "homepage": "https://github.com/yusrilhs/sux-admin#readme",
   "devDependencies": {
     "gulp": "^3.9.1",
+    "gulp-autoprefixer": "^4.0.0",
+    "gulp-concat": "^2.6.1",
     "gulp-header": "^1.8.9",
     "gulp-include": "^2.3.1",
     "gulp-jsbeautifier": "^2.1.1",
