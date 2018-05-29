@@ -1,249 +1,162 @@
-var gulp = require('gulp'),
-    sass = require('gulp-sass'),
-    jshint = require('gulp-jshint'),
-    prettify = require('gulp-jsbeautifier'),
-    uglify = require('gulp-uglify'),
-    include = require('gulp-include'),
-    header = require('gulp-header'),
-    rename = require('gulp-rename'),
-    sourcemaps = require('gulp-sourcemaps'),
-    gutil = require('gulp-util')
-    concat = require('gulp-concat'),
-    autoprefixer = require('gulp-autoprefixer');
+const gulp = require('gulp')
+    , pump = require('pump')
+    , merge = require('merge-stream')
+    , browserSync = require('browser-sync').create()
+    , batch = require('gulp-batch')
+    , watch = require('gulp-watch')
+    , rename = require('gulp-rename')
+    , header = require('gulp-header')
+    , autoprefixer = require('gulp-autoprefixer')
+    , uglify = require('gulp-uglify')
+    , sourcemaps = require('gulp-sourcemaps')
+    , sass = require('gulp-sass')
+    , liquidjs = require('gulp-liquidr')
+    , path = require('path')
 
-// Path Configuration
-var paths = {
-    sass: {
-        source: './src/scss/sux-admin.scss',
-        watch: './src/scss/**/*.scss',
-        dest: './dist/css'
+const config = {
+  banner: `/*!
+ * Sux Admin - Bootstrap 4 admin theme
+ *
+ * @version   2.0.0
+ * @author    Yusril Herlian Syah <yusrilhsyah@gmail.com>
+ * @license   MIT
+ */`,
+  autoprefixer: {
+    browsers: ['last 2 version', 'IE >= 10']
+  },
+  browserSync: {
+    server: {
+      baseDir: './demo'
     },
-    script: {
-        source: './src/scripts/sux-admin.js',
-        watch: './src/scripts/**/*.js',
-        dest: './dist/js'
-    },
-    vendor: {
-        css: {
-            source: [
-                './node_modules/bootstrap/dist/css/bootstrap.min.css',
-                './node_modules/font-awesome/css/font-awesome.min.css',
-                './node_modules/animate.css/animate.min.css',
-                './node_modules/jquery.scrollbar/jquery.scrollbar.css'
-            ],
-            dest: './dist/css'
-        },
-        js: {
-            source: [
-                './node_modules/jquery/dist/jquery.min.js',
-                './node_modules/bootstrap/dist/js/bootstrap.min.js',
-                './node_modules/jquery.scrollbar/jquery.scrollbar.min.js',
-                './node_modules/headroom.js/dist/headroom.min.js',
-                './node_modules/headroom.js/dist/jQuery.headroom.min.js'
-            ],
-            dest: './dist/js'
-        },
-        fonts: {
-            source: [
-                './node_modules/font-awesome/fonts/*'
-            ],
-            dest: './dist/fonts'
-        }
-    },
-    plugins: {
-        sass: {
-            source: './src/plugins/**/*.scss',
-            dest: './dist/plugins'
-        },
-        script: {
-            source: './src/plugins/**/*.js',
-            dest: './dist/plugins'
-        }
-    },
-    dist: {
-        css: './dist/css/**/*',
-        js: './dist/js/**/*',
-        fonts: './dist/fonts/**/*',
-        plugins: {
-            css: [
-                './dist/plugins/**/*.css',
-                './dist/plugins/**/*.css.map'
-            ],
-            js: [
-                './dist/plugins/**/*.js',
-                './dist/plugins/**/*.js.map'
-            ]
-        }
-    },
-    docs: {
-        assets: {
-            css: './docs/assets/css',
-            js: './docs/assets/js',
-            fonts: './docs/assets/fonts',
-            plugins: './docs/assets/plugins'
-        }
-    }
-};
+    notify: false
+  },
+  vendors: {
+    'materialdesignicons': './node_modules/@mdi/font/**/*',
+    'bootstrap': './node_modules/bootstrap/dist/**/*',
+    'jquery': './node_modules/jquery/dist/**/*',
+    'popper.js': './node_modules/popper.js/dist/umd/**/*'
+  }
+}
 
-// Configuration
-var config = {
-    prettify: {
-        indent_size: 4
-    },
-    autoprefixer: {
-        browsers: [
-            'ie >= 10',
-            'last 2 versions'
-        ]
-    }
-};
+gulp.task('sass:expanded', (cb) => {
+  pump([
+    gulp.src('./src/stylesheets/sux-admin.scss'),
+    sass({outputStyle: 'expanded'}),
+    header(config.banner),
+    autoprefixer(config.autoprefixer),
+    gulp.dest('./dist/css'),
+    gulp.dest('./demo/css')
+  ], cb)
+})
 
-// using data from package.json
-var pkg = require('./package.json');
-var banner = ['/*!',
-  ' * <%= pkg.name %> - <%= pkg.description %>',
-  ' * @version v<%= pkg.version %>',
-  ' * @link <%= pkg.homepage %>',
-  ' * @license <%= pkg.license %>',
-  ' */',
-  ''].join('\n');
+gulp.task('sass:compressed', (cb) => {
+  pump([
+    gulp.src('./src/stylesheets/sux-admin.scss'),
+    sourcemaps.init(),
+    sass({outputStyle: 'compressed'}),
+    header(config.banner),
+    autoprefixer(config.autoprefixer),
+    rename({extname: '.min.css'}),
+    sourcemaps.write('.'),
+    gulp.dest('./dist/css'),
+    gulp.dest('./demo/css')
+  ], cb)
+})
 
-// Sass file tasks
-gulp.task('sass:expanded', function() {
-    gulp.src(paths.sass.source)
-        .pipe(header(banner, {pkg:pkg}))
-        .pipe(sass({outputStyle: 'expanded'}).on('error', sass.logError))
-        .pipe(autoprefixer(config.autoprefixer))
-        .pipe(gulp.dest(paths.sass.dest));
-});
+gulp.task('sass:bootstrap', (cb) => {
+  pump([
+    gulp.src('./src/stylesheets/sux-admin.bootstrap.scss'),
+    sass({outputStyle: 'compressed'}),
+    autoprefixer(config.autoprefixer),
+    rename({extname: '.min.css'}),
+    gulp.dest('./dist/css'),
+    gulp.dest('./demo/css')
+  ], cb)
+})
 
-gulp.task('sass:compressed', function() {
-    gulp.src(paths.sass.source)
-        .pipe(sourcemaps.init())
-        .pipe(header(banner, {pkg:pkg}))
-        .pipe(sass({outputStyle: 'expanded'}).on('error', sass.logError))
-        .pipe(rename({extname: '.min.css'}))
-        .pipe(autoprefixer(config.autoprefixer))
-        .pipe(sourcemaps.write('.'))
-        .pipe(gulp.dest(paths.sass.dest));
-});
+gulp.task('script:default', (cb) => {
+  pump([
+    gulp.src('./src/scripts/**/*.js'),
+    header(config.banner),
+    gulp.dest('./dist/js'),
+    gulp.dest('./demo/js')
+  ], cb)
+})
 
-// Js file tasks
-gulp.task('js:prettify', function() {
-    gulp.src(paths.script.source)
-        .pipe(include())
-        .pipe(header(banner, {pkg:pkg}))
-        .pipe(prettify(config.prettify))
-        .pipe(gulp.dest(paths.script.dest));
-});
+gulp.task('script:uglify', (cb) => {
+  pump([
+    gulp.src('./src/scripts/**/*.js'),
+    sourcemaps.init(),
+    uglify(),
+    header(config.banner),
+    rename({extname: '.min.js'}),
+    sourcemaps.write('.'),
+    gulp.dest('./dist/js'),
+    gulp.dest('./demo/js')
+  ], cb)
+})
 
-gulp.task('js:uglify', function() {
-    gulp.src(paths.script.source)
-        .pipe(sourcemaps.init())
-        .pipe(include())
-        .pipe(header(banner, {pkg:pkg}))
-        .pipe(uglify().on('error', gutil.log))
-        .pipe(rename({extname: '.min.js'}))
-        .pipe(sourcemaps.write('.'))
-        .pipe(gulp.dest(paths.script.dest));
-});
+gulp.task('liquidjs', (cb) => {
+  pump([
+    gulp.src([
+      './src/demo/**/*.html',
+      '!./src/demo/_includes/**/*.html',
+      '!./src/demo/_layouts/**/*.html',
+    ]),
+    liquidjs({
+      root: [
+        path.resolve('src/demo/'),
+        path.resolve('src/demo/_includes/'),
+        path.resolve('src/demo/_layouts')
+      ]
+    }),
+    gulp.dest('./demo')
+  ], cb)
+})
 
-gulp.task('js:hint', function() {
-    gulp.src(paths.script.watch)
-        .pipe(jshint());
-});
+gulp.task('vendor', () => {
+  Object.keys(config.vendors).map(dir => {
+    return gulp.src(config.vendors[dir])
+              .pipe(gulp.dest(`./dist/vendor/${dir}`))
+              .pipe(gulp.dest(`./demo/vendor/${dir}`))
+  })
+})
 
-// Vendor file tasks
-gulp.task('vendor:css', function() {
-    gulp.src(paths.vendor.css.source)
-        .pipe(concat('vendor.css'))
-        .pipe(gulp.dest(paths.vendor.css.dest));
-});
+gulp.task('sass', ['sass:expanded', 'sass:compressed', 'sass:bootstrap'])
+gulp.task('script', ['script:default', 'script:uglify'])
 
-gulp.task('vendor:js', function() {
-    gulp.src(paths.vendor.js.source)
-        .pipe(concat('vendor.js'))
-        .pipe(gulp.dest(paths.vendor.js.dest));
-});
+gulp.task('watch:sass', () => {
+  watch('./src/stylesheets/**/*.scss', batch((evt, done) => {
+    gulp.start('sass', () => {
+      browserSync.reload()
+      done()
+    })
+  }))
+})
 
-gulp.task('vendor:fonts', function() {
-    gulp.src(paths.vendor.fonts.source)
-        .pipe(gulp.dest(paths.vendor.fonts.dest));
-});
+gulp.task('watch:script', () => {
+  watch('./src/scripts/**/*.js', batch((evt, done) => {
+    gulp.start('script', () => {
+      browserSync.reload()
+      done()
+    })
+  }))
+})
 
-// Plugins file tasks
-gulp.task('plugins:sass:expanded', function() {
-    gulp.src(paths.plugins.sass.source)
-        .pipe(header(banner, {pkg:pkg}))
-        .pipe(sass({outputStyle: 'expanded'}).on('error', sass.logError))
-        .pipe(autoprefixer(config.autoprefixer))
-        .pipe(gulp.dest(paths.plugins.sass.dest));
-});
+gulp.task('watch:demo', () => {
+  watch('./src/demo/**/*', batch((evt, done) => {
+    gulp.start('liquidjs', () => {
+      browserSync.reload()
+      done()
+    })
+  }))
+})
 
-gulp.task('plugins:sass:compressed', function() {
-    gulp.src(paths.plugins.sass.source)
-        .pipe(sourcemaps.init())
-        .pipe(header(banner, {pkg:pkg}))
-        .pipe(sass({outputStyle: 'compressed'}).on('error', sass.logError))
-        .pipe(rename({extname: '.min.css'}))
-        .pipe(autoprefixer(config.autoprefixer))
-        .pipe(sourcemaps.write('.'))
-        .pipe(gulp.dest(paths.plugins.sass.dest));
-});
+gulp.task('watch', ['default'], () => {
+  browserSync.init(config.browserSync)
+  gulp.start('watch:sass')
+  gulp.start('watch:script')
+  gulp.start('watch:demo')
+})
 
-gulp.task('plugins:js:prettify', function() {
-    gulp.src(paths.plugins.script.source)
-        .pipe(header(banner, {pkg:pkg}))
-        .pipe(prettify(config.prettify))
-        .pipe(gulp.dest(paths.plugins.script.dest));
-});
-
-gulp.task('plugins:js:uglify', function() {
-    gulp.src(paths.plugins.script.source)
-        .pipe(sourcemaps.init())
-        .pipe(include())
-        .pipe(header(banner, {pkg:pkg}))
-        .pipe(uglify().on('error', gutil.log))
-        .pipe(rename({extname: '.min.js'}))
-        .pipe(sourcemaps.write('.'))
-        .pipe(gulp.dest(paths.plugins.script.dest));
-});
-
-// Wrap tasks into sub module
-gulp.task('sass', ['sass:expanded', 'sass:compressed'], function() {
-    gulp.src(paths.dist.css)
-        .pipe(gulp.dest(paths.docs.assets.css));
-});
-
-gulp.task('js', ['js:prettify', 'js:uglify'], function() {
-    gulp.src(paths.dist.js)
-        .pipe(gulp.dest(paths.docs.assets.js));
-});
-gulp.task('vendor', ['vendor:css', 'vendor:js','vendor:fonts'], function() {
-    gulp.src(paths.dist.fonts)
-        .pipe(gulp.dest(paths.docs.assets.fonts));
-});
-
-gulp.task('plugins:sass', ['plugins:sass:expanded', 'plugins:sass:compressed'], function() {
-    gulp.src(paths.dist.plugins.css)
-        .pipe(gulp.dest(paths.docs.assets.plugins));
-});
-
-gulp.task('plugins:js', ['plugins:js:prettify', 'plugins:js:uglify'], function() {
-    gulp.src(paths.dist.plugins.js)
-        .pipe(gulp.dest(paths.docs.assets.plugins));
-});
-
-// Build tasks
-gulp.task('build', ['sass', 'js', 'plugins:js', 'plugins:sass' ,'vendor']);
-
-// Watch tasks
-gulp.task('watch', ['build'], function() {
-    gulp.watch(paths.sass.watch, ['sass']);
-    gulp.watch(paths.script.watch, ['js', 'js:hint']);
-    gulp.watch(paths.plugins.sass.source, ['plugins:sass']);
-    gulp.watch(paths.plugins.script.source, ['plugins:js']);
-});
-
-// Default task for travis-ci
-gulp.task('default', ['build']);
+gulp.task('default', ['sass', 'script', 'vendor', 'liquidjs'])
