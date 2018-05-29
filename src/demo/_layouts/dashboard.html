@@ -2,6 +2,11 @@
 <html>
   {% include 'header' %}
 <body>
+  {% block css %}{% endblock %}
+
   {% block content %}{% endblock %}
+
+  {% include 'footer' %}
+  {% block js %}{% endblock %}
 </body>
 </html>
