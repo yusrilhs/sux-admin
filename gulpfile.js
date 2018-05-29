@@ -22,6 +22,12 @@ const config = {
   autoprefixer: {
     browsers: ['last 2 version', 'IE >= 10']
   },
+  browserSync: {
+    server: {
+      baseDir: './demo'
+    },
+    notify: false
+  },
   vendors: {
     'materialdesignicons': './node_modules/@mdi/font/**/*',
     'bootstrap': './node_modules/bootstrap/dist/**/*',
@@ -98,5 +104,37 @@ gulp.task('vendor', () => {
 
 gulp.task('sass', ['sass:expanded', 'sass:compressed', 'sass:bootstrap'])
 gulp.task('script', ['script:default', 'script:uglify'])
+
+gulp.task('watch:sass', () => {
+  watch('./src/stylesheets/**/*.scss', batch((evt, done) => {
+    gulp.start('sass', () => {
+      browserSync.reload()
+      done()
+    })
+  }))
+})
+
+gulp.task('watch:script', () => {
+  watch('./src/scripts/**/*.js', batch((evt, done) => {
+    gulp.start('script', () => {
+      browserSync.reload()
+      done()
+    })
+  }))
+})
+
+gulp.task('watch:demo', () => {
+  watch('./demo/**/*', batch((evt, done) => {
+    browserSync.reload()
+    done()
+  }))
+})
+
+gulp.task('watch', ['default'], () => {
+  browserSync.init(config.browserSync)
+  gulp.start('watch:sass')
+  gulp.start('watch:script')
+  gulp.start('watch:demo')
+})
 
 gulp.task('default', ['sass', 'script', 'vendor'])
