@@ -10,6 +10,8 @@ const gulp = require('gulp')
     , uglify = require('gulp-uglify')
     , sourcemaps = require('gulp-sourcemaps')
     , sass = require('gulp-sass')
+    , liquidjs = require('gulp-liquidr')
+    , path = require('path')
 
 const config = {
   banner: `/*!
@@ -94,6 +96,24 @@ gulp.task('script:uglify', (cb) => {
   ], cb)
 })
 
+gulp.task('liquidjs', (cb) => {
+  pump([
+    gulp.src([
+      './src/demo/**/*.html',
+      '!./src/demo/_includes/**/*.html',
+      '!./src/demo/_layouts/**/*.html',
+    ]),
+    liquidjs({
+      root: [
+        path.resolve('src/demo/'),
+        path.resolve('src/demo/_includes/'),
+        path.resolve('src/demo/_layouts')
+      ]
+    }),
+    gulp.dest('./demo')
+  ], cb)
+})
+
 gulp.task('vendor', () => {
   Object.keys(config.vendors).map(dir => {
     return gulp.src(config.vendors[dir])
@@ -124,9 +144,11 @@ gulp.task('watch:script', () => {
 })
 
 gulp.task('watch:demo', () => {
-  watch('./demo/**/*', batch((evt, done) => {
-    browserSync.reload()
-    done()
+  watch('./src/demo/**/*', batch((evt, done) => {
+    gulp.start('liquidjs', () => {
+      browserSync.reload()
+      done()
+    })
   }))
 })
 
@@ -137,4 +159,4 @@ gulp.task('watch', ['default'], () => {
   gulp.start('watch:demo')
 })
 
-gulp.task('default', ['sass', 'script', 'vendor'])
+gulp.task('default', ['sass', 'script', 'vendor', 'liquidjs'])
